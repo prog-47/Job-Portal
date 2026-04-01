@@ -10,6 +10,8 @@ import {
     CheckCircle
 } from "lucide-react"
 
+import { validateEmail } from "../../utils/helper"; 
+
 function Login(){
 
     const [formData, setFormData] = useState({
@@ -25,14 +27,7 @@ function Login(){
         success : false
     });
 
-    //validation function
-    const validateEmail = (email) => {
-        if(!email.trim()) return 'Email is required';
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if(!emailRegex.test(email)) return 'Please enter a valid email';
-        return '';
-
-    };
+   
 
     const validatePassword = (password) => {
         if(!password) return 'Password is required';
@@ -54,9 +49,7 @@ function Login(){
                 errors : {...prev.errors, [name]: ''}
             }));
         };
-
-
-    }
+    };
 
     const validateForm = () => {
         const errors = {
@@ -162,7 +155,7 @@ function Login(){
                         <div className="relative ">
                             <Lock className="absolute left-3 top-3 transform -translate-y-0.5 text-gray-400 w-5 h-5"/>
                             <input 
-                             type="password"
+                             type={formState.showPassword ? "text":"password"}
                              name="password"
                              value={formData.password}
                              onChange={handleInputChange}
