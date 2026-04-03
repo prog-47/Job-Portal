@@ -9,8 +9,11 @@ import { connectDB } from './config/db.js';
 
 //import Routes
 import authRoutes from './routes/authRoutes.js';
-import userRoutes from './routes/userRoutes.js'
-
+import userRoutes from './routes/userRoutes.js';
+import jobRoutes from './routes/jobRoutes.js';
+import applicationRoutes from './routes/applicationRoutes.js';
+import savedJobsRoutes from './routes/savedJobRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 
 dotenv.config({quiet : true});
@@ -33,6 +36,11 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/jobs", jobRoutes);
+app.use("/api/application", applicationRoutes);
+app.use("api/save-jobs", savedJobsRoutes);
+app.use("/api/analytics",analyticsRoutes);
+
 
 // Serve uploads folder
 const __filename = fileURLToPath(import.meta.url);
