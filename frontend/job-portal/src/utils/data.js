@@ -108,3 +108,26 @@ export const SALARY_RANGES = [
 "$1000 - $15,000",
 "More than $15,000",
 ];
+
+export const QUick_Action = [
+  {
+    title: "Post New Job",
+    icon: Plus,
+    color: "bg-blue-50 text-blue-700",
+    path: "/post-job",
+  },
+  {
+    title: "Review Applications",
+    icon: Users,
+    color: "bg-green-50 text-green-700",
+    path: "/manage-jobs",
+  },
+  {
+    title: "Company Settings",
+    icon: Building2,
+    color: "bg-orange-50 text-orange-700",
+    path: "/company-profile",
+  }   
+];
+
+

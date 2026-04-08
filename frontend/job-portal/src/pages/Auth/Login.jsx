@@ -11,8 +11,12 @@ import {
 } from "lucide-react"
 
 import { validateEmail } from "../../utils/helper"; 
+import { useAuth } from "../../context/AuthContext";
+import axiosInstance from "../../utils/axiosInstance";
+import { API_PATHS } from "../../utils/apiPaths";
 
 function Login(){
+    const {login} = useAuth()
 
     const [formData, setFormData] = useState({
         email:'',
@@ -75,6 +79,40 @@ function Login(){
 
         try{
             // Login API integration
+            const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
+              email: formData.email,
+              password: formData.password,
+              rememberMe: formData.rememberMe
+            });
+
+            setFormState(prev => ({
+              ...prev,
+              loading: false,
+              success: true,
+              errors: {}
+            }));
+
+            const { token, role } = response.data;
+
+            if(token){
+              Login(response.data, token);
+
+              // Redirect based on role
+              setTimeout(() => {
+                window.location.href = 
+                role === "employer"
+                ? "/employer-dashboard"
+                : "/find-jobs"
+              },2000);
+            }
+
+            // Redirect based on user role
+            setTimeout(() => {
+              const redirectPath = user.role === "employer"
+              ? "/employer-dashboard"
+              : "/find-jobs";
+              window.location.href = redirectPath;
+            },1500);
 
         }catch(error){
             setFormData(prev => ({

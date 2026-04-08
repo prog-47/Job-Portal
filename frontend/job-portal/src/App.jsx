@@ -9,7 +9,7 @@ import { Toaster } from "react-hot-toast"
 
 import LandingPage from "./pages/LandingPage/LandingPage";
 import SignUp from "./pages/Auth/Signup";
-import Login from "./pages/Auth/login";
+import Login from "./pages/Auth/Login";
 import JobSeekerDashboard from "./pages/JobSeeker/JobSeekerDashboard";
 import JobDetails from "./pages/JobSeeker/JobDetails";
 import SavedJobs from "./pages/JobSeeker/SavedJobs";
@@ -20,13 +20,14 @@ import ManageJobs from "./pages/Employer/ManageJobs";
 import ApplicationViewer from "./pages/Employer/ApplicationViewer";
 import EmployerProfilePage from "./pages/Employer/EmployerProfilePage";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import { AuthProvider  } from "./context/AuthContext";
 
 export default function App(){
  
   
  return(
 
-       <div>
+       <AuthProvider>
         <Router>
             <Routes>
                 {/* Public Routes */}
@@ -61,6 +62,6 @@ export default function App(){
             },
           }} /> 
          
-     </div>
+     </AuthProvider>
  );
 }
