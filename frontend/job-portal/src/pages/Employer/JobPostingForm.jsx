@@ -19,7 +19,7 @@ import toast from "react-hot-toast";
 import InputField from "../../Components/Input/InputField";
 import SelectField from "../../Components/Input/SelectField";
 import TextareaField from "../../Components/Input/TextareaField ";
-
+import JobPostingPreview from "../../Components/Cards/JobPostingPreview";
 
 export default function JobPostingForm(){
     const navigate = useNavigate();
@@ -58,12 +58,91 @@ export default function JobPostingForm(){
 
     const handleSubmit = async (e) => {
        e.preventDefault();
-    };
+       const validationErrors = validateForm(formData);
+       if (Object.keys(validationErrors).length > 0) {
+         setErrors(validationErrors);
+         return;
+       }
+
+       setIsSubmitting(true);
+
+       const jobPayload = {
+         title: formData.jobTitle,
+         description: formData.description,
+         requirements: formData.requirements,
+         location: formData.location,
+         category: formData.category,
+         type: formData.jobType,
+         salaryMin: formData.salaryMin,
+         salaryMax: formData.salaryMax,
+       }
+
+       try {
+         const response = jobId
+          ? await axiosInstance.put(API_PATHS.JOBS.UPDATE_JOB(jobId), jobPayload)
+          : await axiosInstance.post(API_PATHS.JOBS.POST_JOB, jobPayload);
+
+         if (response.status === 200 || response.status === 201){
+          toast.success(
+           jobId ? "Job Updated Successfully!" : "Job Posted Successfully!"
+          );
+
+          setFormData({
+            jobTitle: "",
+            location: "",
+            category: "",
+            jobType: "",
+            description: "",
+            requirements: "",
+            salaryMin: "",
+            salaryMax: "",
+          });
+
+          navigate("/employer-dashboard");
+          return;
+         }
+
+         console.error("Unexpected response : ", response);
+         toast.error("Something went wrong. please try again.");
+       }catch(error){
+        if(error.response?.data?.message){
+          console.error("API Error : ",error.response?.data?.message);
+          toast.error(error.response.data.message);
+        }else{
+          console.error("Unexpected error : ", error);
+          toast.error("Failed to post/update job. please try again");
+        }
+       } finally{
+          setIsSubmitting(false);
+       }
+    }
+
 
     // Form validation helper
     const validateForm = (formData) => {
      const errors = {};
 
+     if(!formData.jobTitle.trim()){
+       errors.jobTitle = "Job title is required";
+     }
+     if (!formData.category) {
+       errors.category = "Please select a category";
+     }
+     if(!formData.jobType) {
+       errors.jobType = "Please select a job type";
+     }
+     if (!formData.description.trim()) {
+       errors.description = "Job description is required";
+     }
+     if (!formData.requirements.trim()){
+       errors.requirements = "Job requirements are required";
+     }
+
+     if(!formData.salaryMin || !formData.salaryMax) {
+       errors.salary = "Both minimum and maximum salary are required";
+     }else if (parseInt(formData.salaryMin) >= parseInt(formData.salaryMax)){
+       errors.salary = "Maximum salary must be greater than minimum salary";
+     }
      return errors;
     };
 
@@ -72,6 +151,48 @@ export default function JobPostingForm(){
         return Object.keys(validationErrors).length === 0;
     };
 
+    useEffect(() => {
+       const fetchJobDetails = async () => {
+        if (jobId) {
+         try {
+           const response = await axiosInstance.get(
+            API_PATHS.JOBS.GET_JOB_BY_ID(jobId)
+           );
+           const jobData = response.data;
+           if(jobData){
+            setFormData({
+             jobTitle: jobData.title,
+             location: jobData. location,
+             category: jobData. category,
+             jobType: jobData.type,
+             description: jobData.description,
+             requirements: jobData. requirements,
+             salaryMin: jobData.salaryMin,
+             salaryMax: jobData.salaryMax,
+            });
+           }
+         }catch(err){
+          console.log("Error fetching job details");
+          if (err.response) {
+            console.error("API Error : ", err.response.data.message);
+          }
+         }
+        }
+       };
+       
+       fetchJobDetails();
+       
+       return () => {} 
+      },[]
+    );
+
+    if(isPreview) {
+       return (
+          <DashboardLayout activeMenu="post-job">
+          <JobPostingPreview formData={formData} setIsPreview={setIsPreview} />
+          </DashboardLayout>
+       ) 
+    }
 
     return (
             <DashboardLayout activeMenu='post-job'>
@@ -193,60 +314,67 @@ export default function JobPostingForm(){
                             />
 
                             {/* Salary Range */}
-                            <div className="">
-                              <label className="">
-                                Salary Range <span className=""> *</span>
+                            <div className="space-y-2">
+                              
+                              <label className="block text-sm font-medium text-gray-700">
+                                Salary Range <span className="text-red-500"> *</span>
                               </label>
-                              <div className="">
-                                <div className="">
-                                  <div className="">
-                                    <DollarSign className="" />
+                              
+                              <div className="grid grid-cols-3 gap-3">
+                                
+                                <div className="relative">
+                                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                    <DollarSign className="h-5 w-5 text-gray-400" />
                                   </div>
                                   <input 
                                    type="number"
-                                   placeholder=""
+                                   placeholder="Min"
                                    value={formData.salaryMin}
                                    onChange={(e) =>
                                     handleInputChange("salaryMin",e.target.value)
                                    }
-                                   className=""
+                                   className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 focus:border-blue-500 transition-colors duration-200 "
                                   />
-                                  <div className="">
-                                    <div className="">
-                                      <DollarSign className="" />
-                                    </div>
-                                    <input 
-                                     type="text"
-                                     placeholder="Max"
-                                     value={formData.salaryMax} 
-                                     onChange={(e)=> handleInputChange("salaryMax",e.target.value)}
-                                     className=""
-                                    />
-                                  </div>
                                 </div>
-                                {errors.salary && (
-                                    <div className="">
-                                        <AlertCircle className=""/>
-                                        <span>{errors.salary}</span>
-                                    </div>
-                                )}
-                              </div>
+                                
+                                <div className="relative">
+                                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                    <DollarSign className="h-5 w-5 text-gray-400" />
+                                  </div>
+                                  <input 
+                                    type="number"
+                                    placeholder="Max"
+                                    value={formData.salaryMax} 
+                                    onChange={(e)=> handleInputChange("salaryMax",e.target.value)}
+                                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 focus:border-blue-500 transition-colors duration-200"
+                                  />
+                                </div>
+
+                              </div>  
+
+                              {errors.salary && (
+                                <div className="flex items-center space-x-1 text-sm text-red-600">
+                                    <AlertCircle className="h-4 w-4"/>
+                                    <span>{errors.salary}</span>
+                                </div>
+                              )}
+                            </div>  
 
                             {/* Submit Button */}
-                            <div className="">
+                            <div className="pt-2">
                                <button
                                 onClick={handleSubmit}
                                 disabled={isSubmitting || !isFormValid()}
-                                className=""
+                                className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed outline-none transition-colors duration-200"
                                >
                                 {isSubmitting ? (
                                     <>
-                                     <div className=""></div>
+                                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                                      Publishing Job...
                                     </>
                                 ) : (
                                     <>
-                                     <Send className=""/>
+                                     <Send className="h-5 w-5 mr-2"/>
                                      Publish Job
                                     </>
                                 )}
@@ -254,7 +382,7 @@ export default function JobPostingForm(){
                                </button>
                             </div>
 
-                            </div>
+                            
                         </div>
                     </div>
                 </div>
