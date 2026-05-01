@@ -1,7 +1,7 @@
 import { ChevronDown } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
-export default function ProfileDropdown({ isOpen, onToggle, avatar, companyName, email, onLogout }){
+export default function ProfileDropdown({ isOpen, onToggle, avatar, companyName, email, onLogout, userRole }){
     const navigate = useNavigate();
 
     return(
